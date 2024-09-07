@@ -1,0 +1,65 @@
+/* Add Tailwind CSS base styles */
+@tailwind base;
+
+/* Add Tailwind CSS components */
+@tailwind components;
+
+/* Add Tailwind CSS utilities */
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Responsive Font Sizes */
+
+/* Extra small devices (phones, 600px and down) */
+@media (max-width: 600px) {
+  body {
+    font-size: 14px; /* Adjust base font size for smaller screens */
+  }
+}
+
+/* Small devices (portrait tablets and large phones, 600px to 768px) */
+@media (min-width: 600px) and (max-width: 768px) {
+  body {
+    font-size: 16px; /* Slightly larger font for tablets */
+  }
+}
+
+/* Medium devices (landscape tablets, 768px to 992px) */
+@media (min-width: 768px) and (max-width: 992px) {
+  body {
+    font-size: 18px; /* Larger font for landscape tablets */
+  }
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media (min-width: 992px) {
+  body {
+    font-size: 20px; /* Even larger font for desktops */
+  }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  body {
+    font-size: 22px; /* Max font size for very large screens */
+  }
+}
+
+/* Responsive min-height and min-width for the .min-h-screen class */
+.min-h-screen {
+  min-height: 100vh; /* 100% of the viewport height */
+  min-width: 100vw;  /* 100% of the viewport width */
+}
+
+
+/* styles/globals.css or a CSS module file */
+@layer components {
+  .spinner {
+    @apply border-8 border-t-teal-500 border-gray-200 rounded-full w-24 h-24 animate-spin;
+  }
+}
