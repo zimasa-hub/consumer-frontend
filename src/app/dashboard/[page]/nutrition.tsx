@@ -36,7 +36,6 @@ export default function Nutrition() {
   const [dateOfBirth, setDateOfBirth] = useState<Date | null>(new Date());
 
   
-  // Fetch user data when component mounts
   
 
   const handleDateChange = (date: Date | null) => {
