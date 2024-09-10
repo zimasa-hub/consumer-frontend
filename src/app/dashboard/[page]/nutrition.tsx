@@ -230,7 +230,7 @@ export default function Nutrition() {
 
      
       {/* Food Section */}
-<div className="flex flex-col py-2 w-full mt-4 mb-4 bg-[#FFA5001A] overflow-x-auto">
+      <div className="flex flex-col py-2 w-full mt-4 mb-4 bg-[#FFA5001A] overflow-x-auto">
   <h2 className="text-lg font-semibold mb-2 px-2 mt-2">Food Section</h2>
   {foodSections.length > 0 ? (
     <div className="space-y-4 px-2">
@@ -239,9 +239,16 @@ export default function Nutrition() {
         return (
           <div
             key={index}
-            className="flex flex-col bg-white shadow-md rounded-md p-4 mb-4"
+            className="relative flex flex-col bg-white shadow-md rounded-md p-4 mb-4"
             style={{ width: '100%', maxWidth: '500px' }}
           >
+            {/* Floating Button */}
+            <div className="absolute top-4 right-4 flex items-center justify-center">
+              <button className="border-2 border-teal-custom text-teal-custom rounded-full p-2">
+                <FaPlus />
+              </button>
+            </div>
+            
             <div className="text-lg font-semibold">{section.name}</div>
             <div className="text-sm mt-1">
               <span className="font-medium">Recommended: </span>
