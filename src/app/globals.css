@@ -7,11 +7,14 @@
 /* Add Tailwind CSS utilities */
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
+/* Import Plus Jakarta Sans font */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
 
+/* Set default font family */
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
+
 
 /* Responsive Font Sizes */
 
@@ -57,9 +60,92 @@ body {
 }
 
 
-/* styles/globals.css or a CSS module file */
+
 @layer components {
   .spinner {
     @apply border-8 border-t-teal-500 border-gray-200 rounded-full w-24 h-24 animate-spin;
   }
 }
+
+/* DatePicker Pop-up Customization */
+.react-datepicker__header {
+  background-color: #008080; /* Teal background for header */
+  border-bottom: none;
+}
+
+.react-datepicker__day-name,
+.react-datepicker__day,
+.react-datepicker__time-name {
+  color: #fff; /* White text */
+}
+
+.react-datepicker__current-month {
+  color: #FFA500; /* Orange for current month */
+}
+
+.react-datepicker__day--selected {
+  background-color: #FFA500 !important; /* Orange selected day */
+  color: white;
+}
+
+.react-datepicker__day:hover {
+  background-color: #008080 !important; /* Teal hover */
+  color: white;
+}
+
+
+  .custom-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #008080; /* Default background */
+    border-radius: 5px;
+    outline: none;
+  }
+
+  .custom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    background: #008080; /* Custom teal color */
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .custom-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    background: #008080; /* Custom teal color */
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .custom-slider::-ms-thumb {
+    width: 24px;
+    height: 24px;
+    background: #008080; /* Custom teal color */
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .custom-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 8px;
+    background: #d1d1d1; /* Track color */
+    border-radius: 5px;
+  }
+
+  .custom-slider::-moz-range-track {
+    width: 100%;
+    height: 8px;
+    background: #d1d1d1; /* Track color */
+    border-radius: 5px;
+  }
+
+  .custom-slider::-ms-track {
+    width: 100%;
+    height: 8px;
+    background: transparent; /* Hides track in Internet Explorer */
+    border-color: transparent;
+    color: transparent;
+  }

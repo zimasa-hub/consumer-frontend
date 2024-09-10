@@ -99,7 +99,7 @@ export default function Nutrition() {
   const caloriesRemaining = goal - calories;
 
   return (
-    <div className="flex flex-col min-h-screen items-center bg-gray-50">
+    <div className="flex flex-col min-h-screen items-center bg-gray-50 font-poppins">
       {/* Date Navigation Section */}
       <div className="relative w-full flex justify-center items-center mt-4 px-20 bg-semi-transparent-orange">
         <button
@@ -134,7 +134,7 @@ export default function Nutrition() {
       </div>
 
       {/* Circle Content Section */}
-      <div className="flex flex-col py-2 w-full h-[27vh] items-center bg-[#FFA5001A] md:h-[20vh] lg:h-[15vh]">
+      <div className="flex flex-col py-2 w-full h-[27vh] items-center bg-semi-transparent-orange md:h-[20vh] lg:h-[15vh]">
         <div className="relative flex items-center justify-center mt-2" style={{ width: '159px', height: '159px' }}>
           {/* Circular Progress SVG */}
           <svg className="absolute inset-0" width="159" height="159" viewBox="0 0 159 159">
@@ -172,7 +172,7 @@ export default function Nutrition() {
         </div>
         <Link
           className="flex justify-center text-center bg-teal-custom shadow-lg text-white h-[3rem] w-[15rem] py-[0.6rem] mt-4 rounded-[40px] text-lg font-semibold"
-          href="/dashboard"
+          href="/dashboard/nutrient-goal"
         >
           My Goals
         </Link>

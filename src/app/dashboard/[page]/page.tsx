@@ -2,6 +2,7 @@
 import { useParams } from 'next/navigation';
 import Profile from './profile';
 import Nutrition from './nutrition';
+import NutrientGoal from './nutrient-goal';
 
 
 export default function RegistrationPage() {
@@ -21,9 +22,9 @@ export default function RegistrationPage() {
         <div>
           <Nutrition />
         </div>
-      ) : page === 'otp' ? (
+      ) : page === 'nutrient-goal' ? (
         <div>
-        
+         <NutrientGoal />
         </div>
       ) : (
         <p>Page not found</p>
