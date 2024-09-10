@@ -1,48 +1,43 @@
 "use client";
 
-import Image from "next/image";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { FaArrowLeft, FaEdit } from "react-icons/fa";
-import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { initializeUser } from "@/lib/slices/user/userSlice"; // Adjust the import path as needed
-import axios, { AxiosError } from 'axios';
-import { useRouter } from "next/navigation";
-import 'react-international-phone/style.css';
-import { PhoneInput } from "react-international-phone";
-import { RootState } from "@/lib/store";
-import DatePicker from "react-datepicker"; // 
-import { formatDateToISO, formatISOToDate } from "@/lib/utilities";
-
+import { FaPlus } from "react-icons/fa"; // Importing an icon library for the plus icon
 
 export default function Nutrition() {
-  const [username, setUsername] = useState<string>("Mary Jane");
-  const [email, setEmail] = useState<string>("mary.jane@example.com");
-  const [phone, setphone] = useState<string>("");
-//   const [address, setaddress] = useState<string>("Female");
-//   const [dateOfBirth, setdateOfBirth] = useState<string>("1990-01-01");
-  const [phoneError, setPhoneError] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true); // Define loading state
-  const router = useRouter();
-  const dispatch = useDispatch();
-  const user = useSelector((state: RootState) => state.user.user);
-  const token = user?.jwt
-  const userId = user?.id;
-
-  // Format the date of birth to ISO 8601 format
-//   const formattedDateOfBirth = formatDateToISO(dateOfBirth);
-
-  
   const [dateOfBirth, setDateOfBirth] = useState<Date | null>(new Date());
+  const [calories, setCalories] = useState<number>(1000); // Example value
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const goal = 2000; // Example goal
+  const [recommendedCalories, setRecommendedCalories] = useState<number>(430); // Example recommended calories
+  const [consumedCalories, setConsumedCalories] = useState<number>(170); // Example consumed calories
 
-  
-  
+  const breakfastRecommended = 430;
+  const breakfastConsumed = 74;
+  const breakfastProgress = breakfastConsumed / breakfastRecommended;
+  const breakfastRemaining = breakfastRecommended - breakfastConsumed;
+
+  const lunchRecommended = 600; // Example lunch recommended calories
+  const lunchConsumed = 150; // Example lunch consumed calories
+  const lunchProgress = lunchConsumed / lunchRecommended;
+  const lunchRemaining = lunchRecommended - lunchConsumed;
+
+  // Calculate progress and color transition
+  const progress = Math.min(calories / goal, 1); // Ensure progress is between 0 and 1
+  const startColor = '#008080'; // Teal custom color
+  const endColor = 'rgba(255, 165, 0, 0.5)'; // Semi-transparent orange
+
+  const caloriesRemaining = goal - calories;
+
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [scrollIndex, setScrollIndex] = useState(0);
 
   const handleDateChange = (date: Date | null) => {
     setDateOfBirth(date);
   };
 
-  // Date navigation
   const navigateDate = (direction: "prev" | "next") => {
     if (dateOfBirth) {
       const newDate = new Date(dateOfBirth);
@@ -51,42 +46,247 @@ export default function Nutrition() {
     }
   };
 
-//   if (loading) return (
-//     <div className="flex items-center justify-center min-h-screen">
-//       <div className="spinner"></div>
-//     </div>
-//   );
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    e.preventDefault();
+  };
 
-return (
+  useEffect(() => {
+    const handleScroll = () => {
+      if (carouselRef.current) {
+        const scrollLeft = carouselRef.current.scrollLeft;
+        const width = carouselRef.current.clientWidth;
+        const index = Math.round(scrollLeft / width);
+        setScrollIndex(index);
+      }
+    };
+
+    const element = carouselRef.current;
+    if (element) {
+      element.addEventListener("scroll", handleScroll);
+      return () => element.removeEventListener("scroll", handleScroll);
+    }
+  }, []);
+
+  const scrollCarousel = (direction: "left" | "right") => {
+    if (carouselRef.current) {
+      const width = carouselRef.current.clientWidth;
+      const scrollAmount = direction === "left" ? -width : width;
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  const nutrients = [
+    { name: 'Protein', current: 50, goal: 70 },
+    { name: 'Carbs', current: 10, goal: 150 },
+    { name: 'Fats', current: 5, goal: 50 },
+    { name: 'Vitamin', current: 5, goal: 50 },
+    { name: 'Amino', current: 5, goal: 50 },
+    { name: 'Fiber', current: 20, goal: 30 },
+    { name: 'Amino', current: 5, goal: 50 },
+  ];
+
+  const handleRectangleClick = (index: number) => {
+    setSelectedIndex(index);
+    setScrollIndex(index);
+    const scrollPosition = index * (carouselRef.current?.clientWidth || 0);
+    carouselRef.current?.scrollTo({ left: scrollPosition, behavior: "smooth" });
+  };
+
+  return (
     <div className="flex flex-col min-h-screen items-center bg-gray-50">
       {/* Date Navigation Section */}
-      <div className="relative w-full flex justify-center items-center mt-6">
-        <button onClick={() => navigateDate("prev")} className="absolute left-4">
+      <div className="relative w-full flex justify-center items-center mt-4 px-20 bg-semi-transparent-orange">
+        <button
+          onClick={() => navigateDate("prev")}
+          className="p-2 text-lg text-[#008080] rounded-md"
+        >
           {"<"}
         </button>
-        <div className="flex items-center justify-center">
+        <div className="flex-grow flex items-center justify-center z-40">
           <DatePicker
             selected={dateOfBirth}
             onChange={handleDateChange}
-            className="text-center border border-gray-300 rounded-md p-1"
+            className="flex flex-col text-center text-base p-1 w-[158px] bg-transparent"
             dateFormat="dd MMMM yyyy"
-            wrapperClassName="w-[139px] h-[21px]"
+            wrapperClassName="flex flex-col justify-center items-center"
+            popperPlacement="bottom"
+            popperClassName="date-picker-popper"
+            dropdownMode="scroll"
+            showMonthDropdown
+            showYearDropdown
+            onKeyDown={handleKeyDown}
+            yearDropdownItemNumber={15}
+            scrollableYearDropdown
           />
         </div>
-        <button onClick={() => navigateDate("next")} className="absolute right-4">
+        <button
+          onClick={() => navigateDate("next")}
+          className="p-2 text-lg text-[#008080] rounded-md"
+        >
           {">"}
         </button>
       </div>
 
-      {/* Content Section */}
-      <div className="flex flex-col w-full h-[25vh] items-center bg-[#FFA5001A] md:h-[20vh] lg:h-[15vh] mt-6">
-        THIS IS NUTRITION
+      {/* Circle Content Section */}
+      <div className="flex flex-col py-2 w-full h-[27vh]  items-center bg-[#FFA5001A] md:h-[20vh] lg:h-[15vh]">
+        <div className="relative flex items-center  justify-center mt-2" style={{ width: '159px', height: '159px' }}>
+          {/* Circular Progress SVG */}
+          <svg className="absolute inset-0" width="159" height="159" viewBox="0 0 159 159">
+            <circle
+              cx="79.5"
+              cy="79.5"
+              r="74.5"
+              stroke={endColor}
+              strokeWidth="5"
+              fill="none"
+            />
+            <circle
+              cx="79.5"
+              cy="79.5"
+              r="74.5"
+              stroke={startColor}
+              strokeWidth="5"
+              fill="none"
+              strokeDasharray="468"
+              strokeDashoffset={468 * (1 - progress)} // Adjust progress
+              strokeLinecap="round"
+            />
+          </svg>
+          {/* Inner Circle */}
+          <div className="relative flex items-center justify-center rounded-full bg-[rgba(255,165,0,0.1)] w-full h-full">
+            <div className="relative text-center">
+              <div className="text-2xl font-semibold" style={{ fontFamily: 'Epilogue', fontSize: '22px', fontWeight: 600, lineHeight: '21px' }}>
+                {caloriesRemaining}
+              </div>
+              <div className="text-sm font-semibold" style={{ fontFamily: 'Epilogue', fontSize: '12px', fontWeight: 600, lineHeight: '21px' }}>
+                Calories Remaining
+              </div>
+            </div>
+          </div>
+        </div>
+        <Link
+          className="flex justify-center text-center bg-teal-custom shadow-lg text-white h-[3rem] w-[15rem] py-[0.6rem] mt-4 rounded-[40px] text-lg font-semibold"
+          href="/dashboard"
+        >
+          My Goals
+        </Link>
+      </div>
+
+      {/* Nutrients Goal Section */}
+      <div className="flex flex-col py-2 w-full mt-4 bg-[#FFA5001A] md:h-[20vh] lg:h-[15vh] overflow-x-auto">
+        <div className="flex items-center">
+          <h2 className="text-lg font-semibold mb-2 px-2 mt-2">Nutrients Goal</h2>
+        </div>
+        <div className="flex space-x-2 px-2" ref={carouselRef}>
+          {/* Nutrient Rectangles */}
+          {nutrients.map((nutrient, index) => (
+            <div
+              key={index}
+              onClick={() => handleRectangleClick(index)}
+              className={`flex flex-col items-center justify-between bg-white shadow-md rounded-md p-2 cursor-pointer ${selectedIndex === index ? "border-2 border-[#4CAF50]" : ""}`}
+              style={{ width: '100px', height: '120px' }}
+            >
+              <div className="text-sm font-semibold mb-1">{nutrient.name}</div>
+              <div className="text-xs mb-1">{`${nutrient.current}/${nutrient.goal}g`}</div>
+              <div
+                className="w-full h-2 bg-[#4CAF504D] rounded-md"
+                style={{
+                  background: `linear-gradient(to right, #4CAF50 ${Math.min(nutrient.current / nutrient.goal, 1) * 100}%, #4CAF504D ${Math.min(nutrient.current / nutrient.goal, 1) * 100}%)`
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Carousel Indicator */}
+      <div className="flex items-center justify-center w-full py-2 bg-[#FFA5001A] md:h-[20vh] lg:h-[15vh] relative">
+        <div className="flex flex-grow items-center justify-center space-x-1">
+          {nutrients.map((_, idx) => (
+            <div
+              key={idx}
+              className={`w-2.5 h-2.5 rounded-full transition-colors duration-300 ${
+                idx === scrollIndex ? "bg-[#4CAF50]" : "bg-[#D9D9D9]"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+     {/* Food Section */}
+      <div className="flex flex-col w-full bg-white mt-4 py-4 px-2">
+
+        {/* Breakfast Section */}
+        <div className="relative  bg-semi-transparent-orange p-4 rounded-md shadow-md ">
+          {/* Title */}
+          <h2 className="text-start text-black text-lg font-semibold mb-2">Breakfast</h2>
+
+          {/* Floating Button */}
+          <div className="absolute top-4 right-4 flex items-center justify-center">
+          <button className="border-2 border-teal-custom text-teal-custom rounded-full p-2">
+          <FaPlus />
+            </button>
+          </div>
+
+          {/* Recommended and Consumed Calories */}
+          <div className="flex flex-col items-start">
+            <div className="text-sm font-semibold mb-1">Recommended Calories</div>
+            <div className="text-lg font-semibold mb-1">{recommendedCalories} kcal</div>
+
+            <div className="text-sm font-semibold mb-1">Consumed Calories</div>
+            <div className="text-lg font-semibold mb-1">{consumedCalories} kcal</div>
+
+            {/* Status Bar */}
+            <div className="w-full bg-gray-300 rounded-full h-2.5 mt-2">
+              <div
+                className="bg-[#4CAF50] h-2.5 rounded-full"
+                style={{ width: `${(consumedCalories / recommendedCalories) * 100}%` }}
+              />
+            </div>
+
+            {/* Remaining Calories */}
+            <div className="text-sm font-semibold mt-2">
+              Remaining Calories: {breakfastRemaining} kcal
+            </div>
+          </div>
+        </div>
+
+         {/* Lunch Section */}
+         <div className="relative bg-semi-transparent-orange p-4 rounded-md shadow-md mt-4 mb-4 ">
+          {/* Title */}
+          <h2 className="text-start text-black text-lg font-semibold mb-2">Lunch</h2>
+
+          {/* Floating Button */}
+          <div className="absolute top-4 right-4 flex items-center justify-center">
+            <button className="border-2 border-teal-custom text-teal-custom rounded-full p-2">
+              <FaPlus />
+            </button>
+          </div>
+
+          {/* Recommended and Consumed Calories */}
+          <div className="flex flex-col items-start">
+            <div className="text-sm font-semibold mb-1">Recommended Calories</div>
+            <div className="text-lg font-semibold mb-1">{lunchRecommended} kcal</div>
+
+            <div className="text-sm font-semibold mb-1">Consumed Calories</div>
+            <div className="text-lg font-semibold mb-1">{lunchConsumed} kcal</div>
+
+            {/* Status Bar */}
+            <div className="w-full bg-gray-300 rounded-full h-2.5 mt-2">
+              <div
+                className="bg-[#4CAF50] h-2.5 rounded-full"
+                style={{ width: `${(lunchConsumed / lunchRecommended) * 100}%` }}
+              />
+            </div>
+
+            {/* Remaining Calories */}
+            <div className="text-sm font-semibold mt-2">
+              Remaining Calories: {lunchRemaining} kcal
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
-  
-}
-function setLoading(arg0: boolean) {
-  throw new Error("Function not implemented.");
 }
 

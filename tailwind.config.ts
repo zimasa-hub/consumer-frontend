@@ -19,7 +19,7 @@ const config: Config = {
       },
       colors: {
         'teal-custom': '#008080',
-        'semi-transparent-orange': '#FFA5001A',
+        'semi-transparent-orange': 'rgba(255, 165, 0, 0.1)',
       },
     },
   },
