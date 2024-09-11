@@ -93,7 +93,7 @@ export default function SignUp() {
         <div className="flex flex-col ml-[3rem] mt-[2rem] lg:mx-8 space-y-6">
           {/* Username */}
           <div className="flex items-center border-b border-gray-400 ml-2 w-full h-[3rem] max-w-[17rem]">
-            <FaUser className="text-gray-500 mr-2" />
+            <FaUser className="text-gray-500 mr-2 shrink-0 text-xl" />
             <div className="border-r border-gray-400 h-8 mr-2"></div>
             <input
               type="text"
@@ -155,7 +155,7 @@ export default function SignUp() {
 
           {/* Email */}
           <div className="flex items-center border-b border-gray-400 ml-2 w-full h-[3rem] max-w-[17rem]">
-            <FaEnvelope className="text-gray-500 mr-2" />
+            <FaEnvelope className="text-gray-500 mr-2 shrink-0 text-xl" />
             <div className="border-r border-gray-400 h-8 mr-2"></div>
             <input
               type="email"
@@ -168,7 +168,7 @@ export default function SignUp() {
 
           {/* Password */}
           <div className="flex items-center border-b border-gray-400 relative ml-2 w-full h-[3rem] max-w-[17rem]">
-            <FaLock className="text-gray-500 mr-2" />
+            <FaLock className="text-gray-500 mr-2 shrink-0 text-xl" />
             <div className="border-r border-gray-400 h-8 mr-2"></div>
             <input
               type={showPassword ? "text" : "password"}
@@ -186,7 +186,7 @@ export default function SignUp() {
 
           {/* Confirm Password */}
           <div className="flex items-center border-b border-gray-400 relative ml-2 w-full h-[3rem] max-w-[17rem]">
-            <FaLock className="text-gray-500 mr-2" />
+            <FaLock className="text-gray-500 mr-2 shrink-0 text-xl" />
             <div className="border-r border-gray-400 h-8 mr-2"></div>
             <input
               type={showConfirmPassword ? "text" : "password"}

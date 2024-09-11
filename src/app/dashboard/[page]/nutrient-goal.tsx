@@ -191,7 +191,7 @@ export default function NutrientGoal() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 font-plusJakarta mb-[4rem] overflow-y-auto ">
       <h2 className="flex mt-4 ml-4 items-start justify-start">
-        <Link href="/previous-page">
+        <Link href="/dashboard/nutrition">
           <FaArrowLeft className="text-gray-600 hover:text-gray-800 font-bold mr-2 mt-[0.1rem]" />
         </Link>
         Set Nutrient Goal
