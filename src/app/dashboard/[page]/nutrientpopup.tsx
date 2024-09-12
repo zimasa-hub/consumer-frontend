@@ -2,11 +2,7 @@ import React, { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import {MicroNutrient} from '@/lib/types'
 
-// interface MicroNutrient {
-//   name: string;
-//   amount: number;
-//   unit: string;
-// }
+
 
 interface PopUpProps {
   showPopUp: boolean;

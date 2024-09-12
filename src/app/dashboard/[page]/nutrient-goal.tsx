@@ -36,8 +36,42 @@ export default function NutrientGoal() {
 
    // Use states for Carbs, Fats, and Proteins instead of hardcoded values
    const [carbs, setCarbs] = useState<number>(50);
-   const [fats, setFats] = useState(30);
-   const [proteins, setProteins] = useState(20);
+   const [fats, setFats] = useState<number>(30);
+   const [proteins, setProteins] = useState<number>(20);
+
+// Updated calculatePercentages function to handle zero or invalid input cases
+const calculatePercentages = (carbs: number, fats: number, proteins: number) => {
+  const total = carbs + fats + proteins;
+  if (total === 0) {
+    return { carbs: 0, fats: 0, proteins: 0 };
+  }
+  return {
+    carbs: (carbs / total) * 100,
+    fats: (fats / total) * 100,
+    proteins: (proteins / total) * 100,
+  };
+};
+
+
+   // Handle empty input cases
+   const handleCarbsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    setCarbs(value === "" ? 0 : parseFloat(value));
+  };
+
+  const handleFatsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    setFats(value === "" ? 0 : parseFloat(value));
+  };
+
+  const handleProteinsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    setProteins(value === "" ? 0 : parseFloat(value));
+  };
+
+   // Calculate percentages whenever carbs, fats, or proteins change
+   const { carbs: carbsPercent, fats: fatsPercent, proteins: proteinsPercent } = calculatePercentages(carbs, fats, proteins);
+
 
   const allNutrients: MicroNutrient[] = [
     { name: "Vitamin A", amount: 0, unit: "IU" },
@@ -260,6 +294,9 @@ export default function NutrientGoal() {
         your foods according to the new macros ratio goal
       </h1>
 
+     
+    
+
       <div
         className="relative"
         style={{
@@ -273,33 +310,45 @@ export default function NutrientGoal() {
       </div>
 
       <div className="flex flex-col items-start p-4 mt-4">
-        {data.labels.map((label, index) => (
-          <div key={index} className="flex items-center mb-2 w-full">
-            <div
-              className="flex-shrink-0 flex items-center justify-center"
-              style={{
-                width: "30px",
-                height: "30px",
-                borderRadius: "50%",
-                backgroundColor: data.datasets[0].backgroundColor[index],
-                color: "#fff",
-                fontSize: "14px",
-                fontWeight: "bold",
-                marginRight: "12px",
-              }}
-            >
-              {label[0]}
-            </div>
-            <span className="flex-grow text-base font-medium ml-8">{label}</span>
-            <span className="text-lg font-medium mr-12">
-              {data.datasets[0].data[index]}%
-            </span>
-            <span className="text-lg font-medium mr-4 ">
-              {data.datasets[0].data[index]}g
-            </span>
-          </div>
-        ))}
+  {data.labels.map((label, index) => (
+    <div key={index} className="flex items-center mb-2 w-full">
+      {/* Label section (Left) */}
+      <div
+        className="flex-shrink-0 flex items-center justify-center"
+        style={{
+          width: "30px",
+          height: "30px",
+          borderRadius: "50%",
+          backgroundColor: data.datasets[0].backgroundColor[index],
+          color: "#fff",
+          fontSize: "14px",
+          fontWeight: "bold",
+          marginRight: "12px",
+        }}
+      >
+        {label[0]}
       </div>
+      <span className="flex-grow text-base font-medium ml-8">{label}</span>
+
+      {/* Percentage value section (Middle) */}
+      <span className="text-lg font-medium mx-4">
+        {index === 0 && `${carbsPercent.toFixed(1)}%`}
+        {index === 1 && `${fatsPercent.toFixed(1)}%`}
+        {index === 2 && `${proteinsPercent.toFixed(1)}%`}
+      </span>
+
+      {/* Grams section (Right) */}
+      <span className="text-lg font-medium ml-4">
+        {data.datasets[0].data[index].toFixed(1)}g
+      </span>
+    </div>
+  ))}
+</div>
+
+
+
+
+
 
       <h1 className="flex px-4 text-black text-sm">
         Tap on box to edit macro nutrient goal
@@ -328,7 +377,7 @@ export default function NutrientGoal() {
               className="w-[100px] h-[41px] border border-[#E8DECF] rounded-[5px] opacity-100 px-3"
               placeholder="set grams"
               value={carbs}
-              onChange={(e) => setCarbs(Number(e.target.value))}
+              onChange={handleCarbsChange}
             />
           </div>
 
@@ -337,9 +386,9 @@ export default function NutrientGoal() {
             <input
               type="text"
               className="w-[100px] h-[41px] border border-[#E8DECF] rounded-[5px] opacity-100 px-3"
-              placeholder="set grams"
+               placeholder="Enter fats goal in g"
               value={proteins}
-              onChange={(e) => setProteins(Number(e.target.value))}
+              onChange={handleProteinsChange}
             />
           </div>
 
@@ -350,7 +399,7 @@ export default function NutrientGoal() {
               className="w-[100px] h-[41px] border border-[#E8DECF] rounded-[5px] opacity-100 px-3"
               placeholder="set grams"
               value={fats}
-              onChange={(e) => setFats(Number(e.target.value))}
+              onChange={handleFatsChange}
             />
           </div>
         </div>
@@ -445,7 +494,8 @@ export default function NutrientGoal() {
 
 <button
           onClick={handleAddSelectedNutrients}
-          className="mt-4 px-2 w-full bg-[#008080] text-lg rounded-[24px] text-white py-2 "
+          className="w-[380px] h-[41px] mt-2 ml-5 bg-teal-custom text-white border border-[#E8DECF] rounded-[24px] opacity-100 px-3"
+       
         >
           SET GOAL
         </button>
