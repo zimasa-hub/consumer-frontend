@@ -9,7 +9,7 @@ import axios from 'axios';
 
 export default function Nutrition() {
   const [dateOfBirth, setDateOfBirth] = useState<Date | null>(new Date());
-  const [calories, setCalories] = useState<number>(1000); // Example value
+  const [calories, setCalories] = useState<number>(0); // Example value
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [nutrients, setNutrients] = useState<Array<{ name: string; current: number; goal: number }>>([
     { name: "Protein", current: 45, goal: 60 },

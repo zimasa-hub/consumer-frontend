@@ -32,7 +32,7 @@ export default function Dashboard() {
   
    
   return (
-    <div className="bg-white min-h-screen flex flex-col">
+    <div className="bg-semi-transparent-orange min-h-screen flex flex-col">
       {/* Profile Picture Section */}
      {/* Profile Picture Section */}
      <div className="flex justify-end items-center p-4">

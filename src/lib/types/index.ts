@@ -5,4 +5,10 @@ export interface User {
     email: string;
     jwt: string;
   }
+
+  export interface MicroNutrient {
+    name: string;
+    amount: number;
+    unit: string;
+  }
   

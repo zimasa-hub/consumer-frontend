@@ -7,15 +7,13 @@ import { Pie } from "react-chartjs-2";
 import { Chart, ArcElement, Tooltip, Legend } from "chart.js";
 import NutrientPopUp from "./nutrientpopup";
 import PopUp from "./nutrientpopup";
+import { MicroNutrient } from "@/lib/types";
+
 
 // Register necessary chart components
 Chart.register(ArcElement, Tooltip, Legend);
 
-interface MicroNutrient {
-    name: string;
-    amount: number;
-    unit: string;
-  }
+
 
 export default function NutrientGoal() {
   const [startDate, setStartDate] = useState<Date | null>(new Date());
@@ -28,13 +26,18 @@ export default function NutrientGoal() {
     snack: false,
   });
   const [microNutrients, setMicroNutrients] = useState<MicroNutrient[]>([
-    { name: "Calcium", amount: 120, unit: "mg" },
+    { name: "Calcium", amount: 0, unit: "mg" },
   ]);
 
   const [showPopUp, setShowPopUp] = useState(false);
   const [selectedNutrients, setSelectedNutrients] = useState<MicroNutrient[]>(
     []
   );
+
+   // Use states for Carbs, Fats, and Proteins instead of hardcoded values
+   const [carbs, setCarbs] = useState<number>(50);
+   const [fats, setFats] = useState(30);
+   const [proteins, setProteins] = useState(20);
 
   const allNutrients: MicroNutrient[] = [
     { name: "Vitamin A", amount: 0, unit: "IU" },
@@ -71,7 +74,6 @@ export default function NutrientGoal() {
     { name: "Lutein + Zeaxanthin", amount: 0, unit: "mg" },
     // Add more nutrients as needed
   ];
-  
 
 
   const handleSliderChange = (index: number, value: number) => {
@@ -148,11 +150,12 @@ export default function NutrientGoal() {
     e.preventDefault(); // Prevents typing in the date picker
   };
 
+  // USE STATES FOR CARBS FATS AND PROTEINS INSTEAD OF HARD CODED VALUES
   const data = {
     labels: ["Carbs", "Fats", "Proteins"],
     datasets: [
       {
-        data: [50, 30, 20],
+        data: [carbs, fats, proteins],
         backgroundColor: ["#FFA500", "#800080", "#1E90FF"],
         hoverBackgroundColor: ["#FFA500", "#800080", "#1E90FF"],
         borderWidth: 0,
@@ -189,7 +192,7 @@ export default function NutrientGoal() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 font-plusJakarta mb-[4rem] overflow-y-auto ">
+    <div className="flex flex-col min-h-screen bg-semi-transparent-orange font-plusJakarta mb-[4rem] overflow-y-auto ">
       <h2 className="flex mt-4 ml-4 items-start justify-start">
         <Link href="/dashboard/nutrition">
           <FaArrowLeft className="text-gray-600 hover:text-gray-800 font-bold mr-2 mt-[0.1rem]" />
@@ -204,7 +207,7 @@ export default function NutrientGoal() {
 
       <input
         type="text"
-        className="w-[392px] h-[41px] mt-2 ml-5 border border-[#E8DECF] rounded-[10px] opacity-100 px-3"
+        className="w-[380px] h-[41px] mt-2 ml-5 border border-[#E8DECF] rounded-[10px] opacity-100 px-3"
         placeholder="Enter your goal"
       />
 
@@ -287,7 +290,7 @@ export default function NutrientGoal() {
             >
               {label[0]}
             </div>
-            <span className="flex-grow text-lg font-medium ml-8">{label}</span>
+            <span className="flex-grow text-base font-medium ml-8">{label}</span>
             <span className="text-lg font-medium mr-12">
               {data.datasets[0].data[index]}%
             </span>
@@ -319,26 +322,35 @@ export default function NutrientGoal() {
 
         <div>
           <div className="flex">
+            {/* INPU FOR CARBS */}
             <input
               type="text"
               className="w-[100px] h-[41px] border border-[#E8DECF] rounded-[5px] opacity-100 px-3"
               placeholder="set grams"
+              value={carbs}
+              onChange={(e) => setCarbs(Number(e.target.value))}
             />
           </div>
 
           <div className="flex py-3">
+            {/* INPUT FOR PROTEINS */}
             <input
               type="text"
               className="w-[100px] h-[41px] border border-[#E8DECF] rounded-[5px] opacity-100 px-3"
               placeholder="set grams"
+              value={proteins}
+              onChange={(e) => setProteins(Number(e.target.value))}
             />
           </div>
 
           <div className="flex">
+            {/* INPUT FOR FATS */}
             <input
               type="text"
               className="w-[100px] h-[41px] border border-[#E8DECF] rounded-[5px] opacity-100 px-3"
               placeholder="set grams"
+              value={fats}
+              onChange={(e) => setFats(Number(e.target.value))}
             />
           </div>
         </div>
