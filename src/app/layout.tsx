@@ -4,7 +4,7 @@ import { Inter, Poppins } from 'next/font/google';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './globals.css';
 import StoreProvider from '@/lib/StoreProvider';
-import { User } from '@/lib/types';
+import { User } from '@/lib/interfaces';
 
 const inter = Inter({ subsets: ['latin'] });
 const poppins = Poppins({

@@ -1,9 +1,6 @@
-'use client';
+'use client'; // Keep this if you need client-side rendering
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-//add this to disable route cache especially on CSR
-export const dynamic = 'force-dynamic';
 
 export default function Home() {
   const router = useRouter();
@@ -19,7 +16,7 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="bg-teal-custom min-h-screen flex justify-center items-center ">
+    <div className="bg-teal-custom min-h-screen flex justify-center items-center">
       <h1 className="text-white font-bold text-4xl md:text-5xl">ZIMASA</h1>
     </div>
   );

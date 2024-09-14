@@ -1,6 +1,6 @@
 // lib/features/user/userSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { User } from '@/lib/types';
+import { User } from '@/lib/interfaces';
 
 interface UserState {
   user: User | null; // The user state follows the User interface
@@ -8,6 +8,7 @@ interface UserState {
 
 const initialState: UserState = {
   user: null,
+  // userb: null as User | null, 
 };
 
 export const userSlice = createSlice({
