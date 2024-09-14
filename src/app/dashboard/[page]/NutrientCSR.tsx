@@ -454,8 +454,6 @@ const { carbsPercent, fatsPercent, proteinsPercent } = useMemo(() => {
  
 </div>
 
-
-      {/* Meal Timing Section */}
       {/* Meal Timing Section */}
 <div className="mt-2 px-4">
   <h1 className="text-black text-base mb-2">Select Meal Timings</h1>
