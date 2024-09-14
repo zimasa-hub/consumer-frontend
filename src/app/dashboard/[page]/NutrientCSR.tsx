@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FaArrowLeft, FaCalendarAlt } from "react-icons/fa";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Pie } from "react-chartjs-2";
@@ -10,6 +10,13 @@ import { Chart, ArcElement, Tooltip, Legend } from "chart.js";
 import NutrientPopUp from "./nutrientpopup";
 import PopUp from "./nutrientpopup";
 import { MicroNutrient } from "@/lib/interfaces";
+import { RootState } from "@/lib/store";
+import { useSelector } from "react-redux";
+import { formatISOToDate } from "@/lib/utilities";
+import axios from "axios";
+import { setMealTimings } from "@/lib/slices/nutrition/nutrition_goal";
+import { useAppDispatch } from "@/lib/hooks";
+
 
 
 // Register necessary chart components
@@ -18,15 +25,20 @@ Chart.register(ArcElement, Tooltip, Legend);
 
 
 export default function NutrientCSR() {
+  const user = useSelector((state: RootState) => state.user.user);
+  const dispatch = useAppDispatch()
+  const token = user?.accessToken
+  const userId = user?.id;
   const [startDate, setStartDate] = useState<Date | null>(new Date());
   const [endDate, setEndDate] = useState<Date | null>(new Date());
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
-  const [mealTimings, setMealTimings] = useState({
-    breakfast: false,
-    lunch: false,
-    dinner: false,
-    snack: false,
-  });
+  const [selectedMealTimings, setSelectedMealTimings] = useState<number[]>([]); // Store selected meal timing IDs
+  
+  const mealTimings = useSelector((state: RootState) => state.meals.meals) || null;
+
+  console.log("mealTimings : ", selectedMealTimings)
+
+
   const [microNutrients, setMicroNutrients] = useState<MicroNutrient[]>([
     { name: "Calcium", amount: 0, unit: "mg" },
   ]);
@@ -41,18 +53,59 @@ export default function NutrientCSR() {
    const [fats, setFats] = useState<number>(30);
    const [proteins, setProteins] = useState<number>(20);
 
-// Updated calculatePercentages function to handle zero or invalid input cases
-const calculatePercentages = (carbs: number, fats: number, proteins: number) => {
+   const fetchMealTimings = async () => {
+    if (!userId) return;
+
+    console.log("TOKEN : ", token)
+
+    try {
+      const response = await axios.get(`/api/user/nutritiongoal`, {
+        headers: {
+          Authorization: ` ${token}`, // Include the token in the Authorization header
+        }
+      });
+
+      const data = response.data;
+  
+      console.log("DATA :", data)
+
+      dispatch(setMealTimings(data));
+
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        // Handle Axios-specific errors
+        console.error('Error fetching user data:', error.response?.data?.message || error.message);
+      } else if (error instanceof Error) {
+        // Handle standard errors
+        console.error('Error fetching user data:', error.message);
+      } else {
+        // Fallback for unknown error types
+        console.error('An unknown error occurred:', error);
+      }
+    } finally {
+      // setLoading(false);
+    }
+  };
+
+useEffect(() => {
+
+  fetchMealTimings();
+}, [userId,token]);
+
+
+// Memoize the calculation of percentages
+const { carbsPercent, fatsPercent, proteinsPercent } = useMemo(() => {
   const total = carbs + fats + proteins;
   if (total === 0) {
-    return { carbs: 0, fats: 0, proteins: 0 };
+    return { carbsPercent: 0, fatsPercent: 0, proteinsPercent: 0 };
   }
   return {
-    carbs: (carbs / total) * 100,
-    fats: (fats / total) * 100,
-    proteins: (proteins / total) * 100,
+    carbsPercent: (carbs / total) * 100,
+    fatsPercent: (fats / total) * 100,
+    proteinsPercent: (proteins / total) * 100,
   };
-};
+}, [carbs, fats, proteins]); // Recalculate percentages only when carbs, fats, or proteins change
+
 
 
    // Handle empty input cases
@@ -70,9 +123,6 @@ const calculatePercentages = (carbs: number, fats: number, proteins: number) => 
     const value = e.target.value.trim();
     setProteins(value === "" ? 0 : parseFloat(value));
   };
-
-   // Calculate percentages whenever carbs, fats, or proteins change
-   const { carbs: carbsPercent, fats: fatsPercent, proteins: proteinsPercent } = calculatePercentages(carbs, fats, proteins);
 
 
   const allNutrients: MicroNutrient[] = [
@@ -150,6 +200,9 @@ const calculatePercentages = (carbs: number, fats: number, proteins: number) => 
 
   const handleAddSelectedNutrients = () => {
     // Add the selected nutrients to the current microNutrients
+     
+     fetchMealTimings();
+
     setMicroNutrients((prevNutrients) => [
       ...prevNutrients,
       ...selectedNutrients,
@@ -167,11 +220,12 @@ const calculatePercentages = (carbs: number, fats: number, proteins: number) => 
 
 
 
-  const handleMealTimingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMealTimings({
-      ...mealTimings,
-      [e.target.name]: e.target.checked,
-    });
+  const handleMealTimingChange = (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
+    if (e.target.checked) {
+      setSelectedMealTimings(prev => [...prev, id]);
+    } else {
+      setSelectedMealTimings(prev => prev.filter(item => item !== id));
+    }
   };
 
   const handleStartDateChange = (date: Date | null) => {
@@ -186,20 +240,22 @@ const calculatePercentages = (carbs: number, fats: number, proteins: number) => 
     e.preventDefault(); // Prevents typing in the date picker
   };
 
-  // USE STATES FOR CARBS FATS AND PROTEINS INSTEAD OF HARD CODED VALUES
-  const data = {
-    labels: ["Carbs", "Fats", "Proteins"],
-    datasets: [
-      {
-        data: [carbs, fats, proteins],
-        backgroundColor: ["#FFA500", "#800080", "#1E90FF"],
-        hoverBackgroundColor: ["#FFA500", "#800080", "#1E90FF"],
-        borderWidth: 0,
-        cutout: "70%", // Makes the center transparent (donut-like chart)
-      },
-    ],
-  };
-
+    // Memoize the data for the Pie chart
+    const data = useMemo(() => {
+      return {
+        labels: ['Carbs', 'Fats', 'Proteins'],
+        datasets: [
+          {
+            data: [carbs, fats, proteins],
+            backgroundColor: ['#FFA500', '#800080', '#1E90FF'],
+            hoverBackgroundColor: ['#FFA500', '#800080', '#1E90FF'],
+            borderWidth: 0,
+            cutout: '70%', // Donut chart
+          },
+        ],
+      };
+    }, [carbs, fats, proteins]); // Only recalculate data when macronutrient values change
+  
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -398,53 +454,26 @@ const calculatePercentages = (carbs: number, fats: number, proteins: number) => 
  
 </div>
 
-{/* Meal Timing Section */}
+
+      {/* Meal Timing Section */}
+      {/* Meal Timing Section */}
 <div className="mt-2 px-4">
-  <h1 className="text-black text-base  mb-2">Select Meal Timings</h1>
+  <h1 className="text-black text-base mb-2">Select Meal Timings</h1>
   <div className="grid grid-cols-2 gap-4">
-    {/* Column for Checkboxes */}
-    <div className="flex flex-col ">
-      <label className="flex items-center ">
-        <input
-          type="checkbox"
-          name="breakfast"
-          checked={mealTimings.breakfast}
-          onChange={handleMealTimingChange}
-          className="form-checkbox h-5 w-5 text-[#008080] rounded"
-        />
-        <span className="ml-8">Breakfast</span>
-      </label>
-      <label className="flex items-center mt-2">
-        <input
-          type="checkbox"
-          name="lunch"
-          checked={mealTimings.lunch}
-          onChange={handleMealTimingChange}
-          className="form-checkbox h-5 w-5 text-[#008080] rounded"
-        />
-        <span className="ml-8">Lunch</span>
-      </label>
-      <label className="flex items-center mt-2">
-        <input
-          type="checkbox"
-          name="dinner"
-          checked={mealTimings.dinner}
-          onChange={handleMealTimingChange}
-          className="form-checkbox h-5 w-5 text-[#008080] rounded"
-        />
-        <span className="ml-8">Dinner</span>
-      </label>
-      <label className="flex items-center mt-2">
-        <input
-          type="checkbox"
-          name="snack"
-          checked={mealTimings.snack}
-          onChange={handleMealTimingChange}
-          className="form-checkbox h-5 w-5 text-[#008080] bg-teal-custom rounded"
-        />
-        <span className="ml-8">Snack</span>
-      </label>
-    </div>
+    {Array.isArray(mealTimings) && mealTimings.map(timing => (
+      <div key={timing.id} className="flex items-center">
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            name={timing.name.toLowerCase()}
+            checked={selectedMealTimings.includes(timing.id)}
+            onChange={(e) => handleMealTimingChange(e, timing.id)}
+            className="form-checkbox h-5 w-5 text-[#008080] rounded"
+          />
+          <span className="ml-8">{timing.name}</span>
+        </label>
+      </div>
+    ))}
   </div>
 </div>
 
@@ -470,7 +499,7 @@ const calculatePercentages = (carbs: number, fats: number, proteins: number) => 
   ))}
 
   <button onClick={addMicroNutrient} className="bg-teal-custom text-white px-4 py-2 rounded-[24px] ">
-    Add Nutrients
+    Add Micro Nutrients
   </button>
 </div>
 

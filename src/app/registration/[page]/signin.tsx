@@ -28,6 +28,8 @@ export default function SignIn() {
     setIsLoading(true); // Start loading
     try {
       const response = await axios.post('/api/auth/signin', { email, passwordHash });
+
+      console.log("RESPONSE :" ,response)
       
       // Dispatching the initializeUser action only on successful sign-in
       dispatch(initializeUser(response.data));

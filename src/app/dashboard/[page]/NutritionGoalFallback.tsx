@@ -10,7 +10,7 @@ export default function NutrientGoalFallback() {
         <Link href="/dashboard/nutrition">
           <FaArrowLeft className="text-gray-600 hover:text-gray-800 font-bold mr-2 mt-[0.1rem]" />
         </Link>
-        Set Nutrient Goal
+        Set Nutrient Goal 
       </h2>
       <h1 className="flex mt-4 ml-4 text-2xl font-bold items-start">
         Set Daily Nutrient Goal

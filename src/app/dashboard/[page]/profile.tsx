@@ -25,7 +25,7 @@ export default function Profile() {
   const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
-  const token = user?.jwt
+  const token = user?.accessToken
   const userId = user?.id;
 
   // Format the date of birth to ISO 8601 format

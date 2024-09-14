@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 dateOfBirth: dateOfBirth
             }, {
                 headers: {
-                    Authorization: `Bearer ${jwt}`, 
+                    Authorization: ` ${jwt}`, 
                     'Content-Type': 'application/json'
                 }
             });

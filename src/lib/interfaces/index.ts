@@ -1,9 +1,11 @@
+import { DateNumberType } from "react-datepicker/dist/date_utils";
+
 // types/index.ts or another appropriate file
 export interface User {
     id: string;
     username: string;
-    email: string;
-    jwt: string;
+    role:string;
+    accessToken: string;
   }
 
   export interface MicroNutrient {
@@ -11,4 +13,14 @@ export interface User {
     amount: number;
     unit: string;
   }
+
+  export interface MealTimings {
+    id:number;
+    name: string;
+    time: string;
+    isDefault: boolean;
+    createdAt:Date;
+  }
+
+
   

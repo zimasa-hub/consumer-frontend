@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     
     const response = await axios.get<UserData>(apiUrl, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: ` ${token}`,
       }
     });
 
