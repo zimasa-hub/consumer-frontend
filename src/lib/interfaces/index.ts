@@ -9,9 +9,11 @@ export interface User {
   }
 
   export interface MicroNutrient {
+    id:number
     name: string;
     amount: number;
     unit: string;
+    macro:boolean,
   }
 
   export interface MealTimings {

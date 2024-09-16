@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
-import {MicroNutrient} from '@/lib/interfaces'
-
-
+import { MicroNutrient } from '@/lib/interfaces';
 
 interface PopUpProps {
   showPopUp: boolean;
@@ -11,6 +9,7 @@ interface PopUpProps {
   handleNutrientSelection: (nutrient: MicroNutrient) => void;
   selectedNutrients: MicroNutrient[];
   handleAddSelectedNutrients: () => void;
+  addedNutrients: MicroNutrient[]; // Added prop
 }
 
 const PopUp: React.FC<PopUpProps> = ({
@@ -20,6 +19,7 @@ const PopUp: React.FC<PopUpProps> = ({
   handleNutrientSelection,
   selectedNutrients,
   handleAddSelectedNutrients,
+  addedNutrients, // Destructure the new prop
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -32,14 +32,24 @@ const PopUp: React.FC<PopUpProps> = ({
 
   const isSelected = (nutrient: MicroNutrient) =>
     selectedNutrients.some(selected =>
-      selected.name === nutrient.name && selected.amount === nutrient.amount && selected.unit === nutrient.unit
+      selected.name === nutrient.name &&
+      selected.amount === nutrient.amount &&
+      selected.unit === nutrient.unit
+    );
+
+  const isAdded = (nutrient: MicroNutrient) =>
+    addedNutrients.some(added =>
+      added.name === nutrient.name &&
+      added.amount === nutrient.amount &&
+      added.unit === nutrient.unit
     );
 
   const selectedCount = selectedNutrients.length;
 
   const handleSectionClick = (nutrient: MicroNutrient) => {
-    // Toggle nutrient selection
-    handleNutrientSelection(nutrient);
+    if (!isAdded(nutrient)) {
+      handleNutrientSelection(nutrient);
+    }
   };
 
   const handleOverlayClick = () => {
@@ -94,7 +104,9 @@ const PopUp: React.FC<PopUpProps> = ({
             filteredNutrients.map((nutrient, index) => (
               <div
                 key={index}
-                className={`flex justify-between items-center w-[358px] h-[74px] border border-[#D1DBE8] rounded-md p-[15px_0px_0px_0px] gap-[16px] px-3 cursor-pointer ${
+                className={`flex justify-between items-center w-[358px] h-[74px] border border-[#D1DBE8] rounded-md p-[15px_0px_0px_0px] gap-[16px] px-3 ${
+                  isAdded(nutrient) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                } ${
                   isSelected(nutrient) ? 'bg-[#E0F2F1]' : ''
                 }`}
                 onClick={() => handleSectionClick(nutrient)}
@@ -119,7 +131,7 @@ const PopUp: React.FC<PopUpProps> = ({
         {/* ADD Button */}
         <button
           onClick={handleAddSelectedNutrients}
-          className="mt-4 w-full bg-[#008080] rounded-[24px] text-white py-2 "
+          className="mt-4 w-full bg-[#008080] rounded-[24px] text-white py-2"
         >
           ADD
         </button>

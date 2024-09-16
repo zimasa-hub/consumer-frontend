@@ -1,18 +1,9 @@
 // pages/api/auth/signin.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
-import { rateLimiterMiddleware } from '@/lib/rateLimiter'; 
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'POST') {
-    // Apply rate limiter middleware
-    await new Promise((resolve, reject) => {
-      rateLimiterMiddleware(req, res, (err: any) => {
-        if (err) reject(err);
-        else resolve(true);
-      });
-    });
-
     const { email, passwordHash } = req.body;
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ZIMASA_LOGIN}`, { email, passwordHash });

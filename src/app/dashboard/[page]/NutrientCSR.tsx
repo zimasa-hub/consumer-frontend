@@ -14,8 +14,9 @@ import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
 import { formatISOToDate } from "@/lib/utilities";
 import axios from "axios";
-import { setMealTimings } from "@/lib/slices/nutrition/nutrition_goal";
+import { setMealTimings, setNutrients } from "@/lib/slices/nutrition/nutrition_goal";
 import { useAppDispatch } from "@/lib/hooks";
+import router from "next/router";
 
 
 
@@ -29,29 +30,71 @@ export default function NutrientCSR() {
   const dispatch = useAppDispatch()
   const token = user?.accessToken
   const userId = user?.id;
-  const [startDate, setStartDate] = useState<Date | null>(new Date());
-  const [endDate, setEndDate] = useState<Date | null>(new Date());
+  const [goalStart, setGoalStart] = useState<Date | null>(new Date());
+  const [goalEnd, setGoalEnd] = useState<Date | null>(new Date());
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
   const [selectedMealTimings, setSelectedMealTimings] = useState<number[]>([]); // Store selected meal timing IDs
+  const [description,setDescription] = useState<string>()
+
+
   
-  const mealTimings = useSelector((state: RootState) => state.meals.meals) || null;
+  const mealTimings = useSelector((state: RootState) => state.meals.meals) || [];
+  const allNutrients = useSelector((state: RootState) => state.meals.nutrients) || [];
+
 
   console.log("mealTimings : ", selectedMealTimings)
 
 
   const [microNutrients, setMicroNutrients] = useState<MicroNutrient[]>([
-    { name: "Calcium", amount: 0, unit: "mg" },
+   
   ]);
+
+   // Use states for Carbs, Fats, and Proteins instead of hardcoded values
+   const [carbs, setCarbs] = useState<number>(0);
+   const [fats, setFats] = useState<number>(0);
+   const [proteins, setProteins] = useState<number>(0);
+
+  const [macroNutrients, setMacroNutrients] = useState<MicroNutrient[]>([
+    { id: 1, name: 'Protein', unit: 'g', amount: proteins, macro: true },
+    { id: 2, name: 'Carbohydrates', unit: 'g', amount: carbs, macro: true },
+    { id: 3, name: 'Fats', unit: 'g', amount: 0, macro: true }
+  ]);
+  
+
+  
+
+
 
   const [showPopUp, setShowPopUp] = useState(false);
   const [selectedNutrients, setSelectedNutrients] = useState<MicroNutrient[]>(
     []
   );
 
-   // Use states for Carbs, Fats, and Proteins instead of hardcoded values
-   const [carbs, setCarbs] = useState<number>(50);
-   const [fats, setFats] = useState<number>(30);
-   const [proteins, setProteins] = useState<number>(20);
+ 
+
+  
+
+
+   const fetchNutrients = async (): Promise<MicroNutrient[]> => {
+    try {
+      const response = await axios.get<MicroNutrient[]>(`/api/user/nutrients`, {
+        headers: {
+          Authorization: ` ${token}`, // Include the token in the Authorization header
+        }
+      });
+      const data = response.data;
+      dispatch(setNutrients(data));
+  
+      console.log("NUTRIENTS :", data);
+  
+      return data; // Return the data
+    } catch (error: unknown) {
+      handleError(error);
+      return []; // Return an empty array in case of error
+    }
+  };
+  
+
 
    const fetchMealTimings = async () => {
     if (!userId) return;
@@ -72,25 +115,39 @@ export default function NutrientCSR() {
       dispatch(setMealTimings(data));
 
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        // Handle Axios-specific errors
-        console.error('Error fetching user data:', error.response?.data?.message || error.message);
-      } else if (error instanceof Error) {
-        // Handle standard errors
-        console.error('Error fetching user data:', error.message);
-      } else {
-        // Fallback for unknown error types
-        console.error('An unknown error occurred:', error);
-      }
+      handleError(error);
+    return []; // Return an empty array or handle this appropriately
     } finally {
       // setLoading(false);
     }
   };
 
+ 
+  
+
 useEffect(() => {
 
+  fetchNutrients();
   fetchMealTimings();
 }, [userId,token]);
+
+
+
+console.log("MACRO : ", macroNutrients)
+
+
+
+  // Error handling utility
+  const handleError = (error: unknown) => {
+    if (axios.isAxiosError(error)) {
+      console.error('Error fetching user data:', error.response?.data?.message || error.message);
+    } else if (error instanceof Error) {
+      console.error('Error fetching user data:', error.message);
+    } else {
+      console.error('An unknown error occurred:', error);
+    }
+  };
+
 
 
 // Memoize the calculation of percentages
@@ -111,62 +168,56 @@ const { carbsPercent, fatsPercent, proteinsPercent } = useMemo(() => {
    // Handle empty input cases
    const handleCarbsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
-    setCarbs(value === "" ? 0 : parseFloat(value));
-  };
+    const carbsValue = value === "" ? 0 : parseFloat(value);
+    setCarbs(carbsValue);
 
-  const handleFatsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.trim();
-    setFats(value === "" ? 0 : parseFloat(value));
-  };
+    // Update macroNutrients state by ID
+  setMacroNutrients(prevNutrients => 
+    prevNutrients.map(nutrient => 
+      nutrient.id === 2 ? { ...nutrient, amount: carbsValue } : nutrient
+    )
+  );
+};
 
-  const handleProteinsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.trim();
-    setProteins(value === "" ? 0 : parseFloat(value));
-  };
+ const handleFatsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const value = e.target.value.trim();
+  const fatsValue = value === "" ? 0 : parseFloat(value);
+  setFats(fatsValue);
 
+ // Update macroNutrients state by ID
+ setMacroNutrients(prevNutrients => 
+  prevNutrients.map(nutrient => 
+    nutrient.id === 3 ? { ...nutrient, amount: fatsValue } : nutrient
+  )
+);
+};
 
-  const allNutrients: MicroNutrient[] = [
-    { name: "Vitamin A", amount: 0, unit: "IU" },
-    { name: "Vitamin C", amount: 0, unit: "mg" },
-    { name: "Iron", amount: 0, unit: "mg" },
-    { name: "Calcium", amount: 0, unit: "mg" },
-    { name: "Vitamin D", amount: 0, unit: "IU" },
-    { name: "Vitamin E", amount: 0, unit: "mg" },
-    { name: "Vitamin K", amount: 0, unit: "mcg" },
-    { name: "Thiamine (Vitamin B1)", amount: 0, unit: "mg" },
-    { name: "Riboflavin (Vitamin B2)", amount: 0, unit: "mg" },
-    { name: "Niacin (Vitamin B3)", amount: 0, unit: "mg" },
-    { name: "Vitamin B6", amount: 0, unit: "mg" },
-    { name: "Folate (Vitamin B9)", amount: 0, unit: "mcg" },
-    { name: "Vitamin B12", amount: 0, unit: "mcg" },
-    { name: "Biotin", amount: 0, unit: "mcg" },
-    { name: "Pantothenic Acid (Vitamin B5)", amount: 0, unit: "mg" },
-    { name: "Magnesium", amount: 0, unit: "mg" },
-    { name: "Zinc", amount: 0, unit: "mg" },
-    { name: "Copper", amount: 0, unit: "mg" },
-    { name: "Manganese", amount: 0, unit: "mg" },
-    { name: "Selenium", amount: 0, unit: "mcg" },
-    { name: "Potassium", amount: 0, unit: "mg" },
-    { name: "Sodium", amount: 0, unit: "mg" },
-    { name: "Choline", amount: 0, unit: "mg" },
-    { name: "Omega-3 Fatty Acids", amount: 0, unit: "g" },
-    { name: "Omega-6 Fatty Acids", amount: 0, unit: "g" },
-    { name: "Iodine", amount: 0, unit: "mcg" },
-    { name: "Fluoride", amount: 0, unit: "mg" },
-    { name: "Chromium", amount: 0, unit: "mcg" },
-    { name: "Molybdenum", amount: 0, unit: "mcg" },
-    { name: "Sulfur", amount: 0, unit: "mg" },
-    { name: "Pectin", amount: 0, unit: "mg" },
-    { name: "Lutein + Zeaxanthin", amount: 0, unit: "mg" },
-    // Add more nutrients as needed
-  ];
+const handleProteinsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const value = e.target.value.trim();
+  const proteinsValue = value === "" ? 0 : parseFloat(value);
+  setProteins(proteinsValue);
 
+  // Update macroNutrients state by ID
+  setMacroNutrients(prevNutrients => 
+    prevNutrients.map(nutrient => 
+      nutrient.id === 1 ? { ...nutrient, amount: proteinsValue } : nutrient
+    )
+  );
+};
 
-  const handleSliderChange = (index: number, value: number) => {
-    const updatedNutrients = [...microNutrients];
-    updatedNutrients[index].amount = value;
-    setMicroNutrients(updatedNutrients);
-  };
+console.log("MICRONUTRIENTS : ", microNutrients)
+
+ // Ensure to create a new copy of the microNutrients array and update the state properly
+const handleSliderChange = (index: number, value: number) => {
+  // Create a new array by mapping over the existing microNutrients array
+  const updatedNutrients = microNutrients.map((nutrient, i) => 
+    i === index ? { ...nutrient, amount: value } : nutrient
+  );
+  
+  // Update the state with the new array
+  setMicroNutrients(updatedNutrients);
+};
+
 
   const addMicroNutrient = () => {
     setShowPopUp(true);
@@ -191,29 +242,47 @@ const { carbsPercent, fatsPercent, proteinsPercent } = useMemo(() => {
             selected.unit !== nutrient.unit
         );
       } else {
-        // Select the nutrient
-        return [...prevSelected, nutrient];
+        // Check if the nutrient is already in microNutrients
+        const isInMicroNutrients = microNutrients.some(
+          existing =>
+            existing.name === nutrient.name &&
+            existing.amount === nutrient.amount &&
+            existing.unit === nutrient.unit
+        );
+  
+        if (isInMicroNutrients) {
+          // Nutrient is already in microNutrients, so do not add it to selectedNutrients
+          return prevSelected;
+        } else {
+          // Select the nutrient
+          return [...prevSelected, nutrient];
+        }
       }
     });
   };
   
 
   const handleAddSelectedNutrients = () => {
-    // Add the selected nutrients to the current microNutrients
-     
-     fetchMealTimings();
-
-    setMicroNutrients((prevNutrients) => [
-      ...prevNutrients,
-      ...selectedNutrients,
-    ]);
-  
-    // Clear selected nutrients to prevent re-adding them
-    setSelectedNutrients([]);
-  
-    // Close the pop-up
-    setShowPopUp(false);
+    // Combine selectedNutrients with existing microNutrients, avoiding duplicates
+    setMicroNutrients(prevNutrients => {
+      const updatedNutrients = new Map<string, MicroNutrient>();
+      
+      prevNutrients.forEach(nutrient => {
+        updatedNutrients.set(`${nutrient.name}-${nutrient.amount}-${nutrient.unit}`, nutrient);
+      });
+      
+      selectedNutrients.forEach(nutrient => {
+        updatedNutrients.set(`${nutrient.name}-${nutrient.amount}-${nutrient.unit}`, nutrient);
+      });
+      
+      return Array.from(updatedNutrients.values());
+    });
+    
+    setSelectedNutrients([]); // Clear selected nutrients
+    setShowPopUp(false); // Close the pop-up
   };
+  
+  
   
 
 
@@ -229,11 +298,11 @@ const { carbsPercent, fatsPercent, proteinsPercent } = useMemo(() => {
   };
 
   const handleStartDateChange = (date: Date | null) => {
-    setStartDate(date);
+    setGoalStart(date);
   };
 
   const handleEndDateChange = (date: Date | null) => {
-    setEndDate(date);
+    setGoalEnd(date);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
@@ -283,12 +352,69 @@ const { carbsPercent, fatsPercent, proteinsPercent } = useMemo(() => {
     },
   };
 
+ 
+ 
+  const [dietPlan, setDietPlan] = useState(null) 
+
+  const handleSetGoal = async () => {
+    // Ensure goalStart and goalEnd are formatted in ISO strings
+    const formattedGoalStart = goalStart ? goalStart.toISOString() : null;
+    const formattedGoalEnd = goalEnd ? goalEnd.toISOString() : null;
+  
+    // Create the `nutrientTargets` by combining macro and micro nutrients
+    const nutrientTargets = [
+      ...macroNutrients.map(({ id, amount }) => ({ nutrientID: id, dailyTarget: amount })),
+      ...microNutrients.map(({ id, amount }) => ({ nutrientID: id, dailyTarget: amount }))
+    ];
+  
+    // Ensure that `mealSchedules` is an array of selectedMealTimings
+    const mealSchedules = selectedMealTimings.map(id => ({ mealTimingId: id }));
+    
+    // Map selectedMealTimings to the format expected by mealTimings
+    const mealTimings = selectedMealTimings.map(id => ({ id }));
+  
+    try {
+      // Send the payload to the backend API
+      const response = await axios.post('/api/user/setgoal', {
+        nutritionTarget: {
+          description,           // Goal description
+          goalStart: formattedGoalStart, // Start date in ISO string format
+          goalEnd: formattedGoalEnd,     // End date in ISO string format
+          dietPlan              // Diet plan (make sure this is correctly set)
+        },
+        nutrientTargets,      // Combined nutrient targets
+        mealTimings,          // Meal timings (IDs)
+        mealSchedules        // Meal schedules (formatted with mealTimingId)
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Use Bearer token format for Authorization
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      // Handle successful response
+      console.log('Goal Saved:', response.data);
+      router.push('/dashboard/nutrient-goal'); // Redirect after saving goal
+    } catch (error: any) {
+      console.error('Error updating goal:', error.response?.data?.message || error.message);
+    }
+  };
+  
+
+  
+  const handleSetDescription = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDescription(event.target.value);
+  };
+  
+
     return(
         <div>
               <h2 className="flex mt-2 ml-5 items-start">Enter Goal Name</h2>
 
 <input
+value={description}
   type="text"
+  onChange={handleSetDescription}
   className="w-[380px] h-[41px] mt-2 ml-5 border border-[#E8DECF] rounded-[10px] opacity-100 px-3"
   placeholder="Enter your goal"
 />
@@ -300,7 +426,7 @@ const { carbsPercent, fatsPercent, proteinsPercent } = useMemo(() => {
     </label>
     <div className="relative w-full">
       <DatePicker
-        selected={startDate}
+        selected={goalStart}
         onChange={handleStartDateChange}
         className="w-full h-[35px] border border-[#E8DECF] rounded-[10px] pl-3 pr-10"
         dateFormat="dd MMMM yyyy"
@@ -321,7 +447,7 @@ const { carbsPercent, fatsPercent, proteinsPercent } = useMemo(() => {
     </label>
     <div className="relative w-full">
       <DatePicker
-        selected={endDate}
+        selected={goalEnd}
         onChange={handleEndDateChange}
         className="w-full h-[35px] border border-[#E8DECF] rounded-[10px] pl-3 pr-10"
         dateFormat="dd MMMM yyyy"
@@ -454,6 +580,7 @@ const { carbsPercent, fatsPercent, proteinsPercent } = useMemo(() => {
  
 </div>
 
+
       {/* Meal Timing Section */}
 <div className="mt-2 px-4">
   <h1 className="text-black text-base mb-2">Select Meal Timings</h1>
@@ -488,7 +615,7 @@ const { carbsPercent, fatsPercent, proteinsPercent } = useMemo(() => {
       <input
         type="range"
         min="0"
-        max="100"
+        max="1000"
         value={nutrient.amount}
         onChange={(e) => handleSliderChange(index, Number(e.target.value))}
         className="w-full"
@@ -509,17 +636,16 @@ const { carbsPercent, fatsPercent, proteinsPercent } = useMemo(() => {
   handleNutrientSelection={handleNutrientSelection}
   selectedNutrients={selectedNutrients}
   handleAddSelectedNutrients={handleAddSelectedNutrients}
+  addedNutrients={microNutrients} // Add this line
 />
 
+
 <button
-    onClick={handleAddSelectedNutrients}
+    onClick={handleSetGoal}
     className="w-[380px] h-[41px] mt-2 ml-5 bg-teal-custom text-white border border-[#E8DECF] rounded-[24px] opacity-100 px-3"
- 
   >
     SET GOAL
   </button>
-
-      
     </div>
   );
 }
