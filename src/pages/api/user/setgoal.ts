@@ -1,11 +1,10 @@
-// pages/api/setgoal.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const token = req?.headers?.authorization; // Extract token from Authorization header
 
-  console.log("TOKEN:", token);
+  console.log("TOKEN arnold:", token);
   console.log("REQ METHOD:", req.method);
 
   if (!token) {
@@ -13,38 +12,30 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   if (req.method === 'POST') {
-    const { 
-      description, 
-      goalStart, 
-      goalEnd, 
-      selectedMealTimings, 
-      nutrientTargets, 
-      mealSchedules, 
-      dietPlan 
-    } = req.body;
+    // Log raw request body
+    console.log("RAW REQUEST BODY:", req.body);
 
-    console.log("REQUEST BODY:", req.body);
+    console.log("RAW REQUEST BODY:", req.body.nutritionTarget.goalStart);
 
-    // Transform payload to match the backend API format
-    const payload = {
-      nutritionTarget: {
-        description,           // Goal description
-        goalStart,             // Start date in ISO string format
-        goalEnd,               // End date in ISO string format
-        dietPlan              // Diet plan (make sure this is correctly set)
-      },
-      nutrientTargets: nutrientTargets.map(({ id, amount }: { id: number, amount: number }) => ({
-        nutrientID: id,
-        dailyTarget: amount
-      })),
-      mealTimings: selectedMealTimings.map((id: number) => ({ id })),
-      mealSchedules: mealSchedules.map((id: number) => ({ mealTimingId: id }))
+    // Validate req.body structure
+    if (!req.body.nutritionTarget.description || !req.body.nutritionTarget.goalStart || !req.body.nutritionTarget.goalEnd) {
+      return res.status(400).json({ message: 'Invalid request payload' });
+    }
+
+    // Modify req.body directly
+    const modifiedBody = {
+      nutritionTarget: req.body.nutritionTarget,
+      nutrientTargets: req.body.nutrientTargets,
+      mealTimings: req.body.mealTimings,
+      mealSchedules: req.body.mealSchedules,
     };
+
+    console.log("Modified request body:", modifiedBody);
 
     try {
       const apiUrl = `${process.env.NEXT_PUBLIC_ZIMASA_SETGOAL}`;
 
-      const response = await axios.post(apiUrl, payload, {
+      const response = await axios.post(apiUrl, modifiedBody, {
         headers: {
           Authorization: `${token}`,
           'Content-Type': 'application/json'
@@ -58,7 +49,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(error.response?.status || 500).json({ message: error.message });
     }
   } else {
-    res.setHeader('Allow', ['GET', 'POST', 'PUT']);
+    res.setHeader('Allow', ['POST']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
     console.log("RESPONSE:", res.status);
   }

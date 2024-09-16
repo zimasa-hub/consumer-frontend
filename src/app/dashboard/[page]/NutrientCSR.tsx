@@ -369,25 +369,38 @@ const handleSliderChange = (index: number, value: number) => {
   
     // Ensure that `mealSchedules` is an array of selectedMealTimings
     const mealSchedules = selectedMealTimings.map(id => ({ mealTimingId: id }));
-    
+  
     // Map selectedMealTimings to the format expected by mealTimings
     const mealTimings = selectedMealTimings.map(id => ({ id }));
+  
+    // Log values before sending
+    console.log('Sending payload to API:', {
+      nutritionTarget: {
+        description,
+        goalStart: formattedGoalStart,
+        goalEnd: formattedGoalEnd,
+        dietPlan
+      },
+      nutrientTargets,
+      mealTimings,
+      mealSchedules
+    });
   
     try {
       // Send the payload to the backend API
       const response = await axios.post('/api/user/setgoal', {
         nutritionTarget: {
-          description,           // Goal description
-          goalStart: formattedGoalStart, // Start date in ISO string format
-          goalEnd: formattedGoalEnd,     // End date in ISO string format
-          dietPlan              // Diet plan (make sure this is correctly set)
+          description,
+          goalStart: formattedGoalStart,
+          goalEnd: formattedGoalEnd,
+          dietPlan
         },
-        nutrientTargets,      // Combined nutrient targets
-        mealTimings,          // Meal timings (IDs)
-        mealSchedules        // Meal schedules (formatted with mealTimingId)
+        nutrientTargets,
+        mealTimings,
+        mealSchedules
       }, {
         headers: {
-          Authorization: `Bearer ${token}`, // Use Bearer token format for Authorization
+          Authorization: `${token}`, // Use Bearer token format for Authorization
           'Content-Type': 'application/json'
         }
       });
@@ -399,6 +412,7 @@ const handleSliderChange = (index: number, value: number) => {
       console.error('Error updating goal:', error.response?.data?.message || error.message);
     }
   };
+  
   
 
   
