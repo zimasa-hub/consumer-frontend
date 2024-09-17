@@ -12,6 +12,7 @@ import 'react-international-phone/style.css';
 import { PhoneInput } from "react-international-phone";
 import { RootState } from "@/lib/store";
 import { formatDateToISO, formatISOToDate } from "@/lib/utilities";
+import NutritionGoalFallback from "./NutritionGoalFallback";
 
 
 export default function Profile() {
@@ -42,7 +43,7 @@ export default function Profile() {
       try {
         const response = await axios.get(`/api/user/${userId}`, {
           headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+            Authorization: `${token}`, // Include the token in the Authorization header
           }
         });
   
@@ -137,7 +138,7 @@ export default function Profile() {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="spinner"></div>
+      <NutritionGoalFallback />
     </div>
   );
 

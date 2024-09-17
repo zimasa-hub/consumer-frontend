@@ -1,9 +1,10 @@
 "use server";
 
-import { use } from 'react';
+import { Suspense, use } from 'react';
 import Profile from './profile';
 import Nutrition from './nutrition';
 import NutrientGoal from './nutrient-goal';
+import NutrientGoalFallback from './NutritionGoalFallback';
 
 // Server component to fetch the params from the URL
 export default async function RegistrationPage({
@@ -18,7 +19,10 @@ export default async function RegistrationPage({
       {/* Render different content based on the value of `page` */}
       {page === 'profile' ? (
         <div>
+          <Suspense fallback={<NutrientGoalFallback />}>
           <Profile />
+          </Suspense>
+          
         </div>
       ) : page === 'nutrition' ? (
         <div>

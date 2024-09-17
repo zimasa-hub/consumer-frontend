@@ -6,54 +6,91 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { FaPlus } from "react-icons/fa";
 import axios from 'axios';
+import { RootState } from "@/lib/store";
+import { useSelector } from "react-redux";
+import { formatDateToISO } from "@/lib/utilities";
+import { NutritionPayload } from "@/lib/interfaces";
 
 export default function Nutrition() {
-  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(new Date());
-  const [calories, setCalories] = useState<number>(0); // Example value
+  const [nutritionDate, setNutritionDate] = useState<Date | null>(new Date());
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  const [nutrients, setNutrients] = useState<Array<{ name: string; current: number; goal: number }>>([
-    { name: "Protein", current: 45, goal: 60 },
-    { name: "Carbs", current: 150, goal: 200 },
-    { name: "Fats", current: 70, goal: 80 }
-  ]);
-  const [foodSections, setFoodSections] = useState<Array<{ name: string; recommended: number; consumed: number }>>([
-    { name: "Breakfast", recommended: 300, consumed: 250 },
-    { name: "Lunch", recommended: 500, consumed: 400 },
-    { name: "Dinner", recommended: 600, consumed: 550 }
-  ]);
-  const goal = 2000; // Example goal
+  const user = useSelector((state: RootState) => state.user.user);
+  const token = user?.accessToken
+  const userId = user?.id;
+
+
+  const [nutrients, setNutrients] = useState<Array<{ name: string; current: number; goal: number }>>([]);
+  const [foodSections, setFoodSections] = useState<Array<{ name: string; recommended: number; consumed: number }>>([]);
+  const [calories, setCalories] = useState<number>(0);
+  
+  const [goal,setGoal] = useState(0) // Example goal
   const [recommendedCalories, setRecommendedCalories] = useState<number>(430); // Example recommended calories
   const [consumedCalories, setConsumedCalories] = useState<number>(170); // Example consumed calories
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const [scrollIndex, setScrollIndex] = useState(0);
 
-  useEffect(() => {
-    // Fetch nutrients and food data from API
-    const fetchData = async () => {
-      try {
-        const nutrientsResponse = await axios.get('/api/nutrients'); // Replace with your API endpoint
-        const foodResponse = await axios.get('/api/food'); // Replace with your API endpoint
-        
-        setNutrients(nutrientsResponse.data);
-        setFoodSections(foodResponse.data);
-      } catch (error) {
+  const [noData, setNoData] = useState<boolean>(false); // State to track if no data is available
+
+
+  const fetchData = async (date: Date | null) => {
+  if (date) {
+    try {
+      const formattedDate = date.toISOString();
+  
+      const response = await axios.get(`/api/user/${formattedDate}`, {
+        headers: {
+          Authorization: `${token}`,
+        }
+      });
+  
+      const data: NutritionPayload = response.data;
+      setNoData(false); // Reset noData state if data is fetched successfully
+
+
+      // Update state with the received data
+      setNutrients(data.nutrientTargets.map(n => ({
+        name: n.nutrient.name,
+        current: 0, // You might want to calculate the current value based on user data
+        goal: n.dailyTarget
+      })));
+      setFoodSections(data.plannedMealSchedule.map(m => ({
+        name: m.mealTimings.name,
+        recommended: 0, // You might want to calculate the recommended value based on user data
+        consumed: 0 // You might want to calculate the consumed value based on user data
+      })));
+      setGoal(data.nutritionTarget.totalCaloriesSet); // Adjust based on actual data
+      // Adjust any other state updates based on the response data
+      setCalories(data.nutritionTarget.remainingCalories)
+
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        setNoData(true); // Set noData to true if a 404 error occurs
+      } else {
         console.error("Error fetching data:", error);
       }
-    };
+    }
+  }
+};
 
-    fetchData();
-  }, []);
-
+  
+  useEffect(() => {
+    // Fetch nutrients and food data from API
+    fetchData(nutritionDate); // Pass the Date object directly
+  }, [token]);
+  
   const handleDateChange = (date: Date | null) => {
-    setDateOfBirth(date);
+    setNutritionDate(date);
+    fetchData(date);
   };
 
   const navigateDate = (direction: "prev" | "next") => {
-    if (dateOfBirth) {
-      const newDate = new Date(dateOfBirth);
+    if (nutritionDate) {
+      const newDate = new Date(nutritionDate);
       newDate.setDate(direction === "prev" ? newDate.getDate() - 1 : newDate.getDate() + 1);
-      setDateOfBirth(newDate);
+      setNutritionDate(newDate);
+      setCalories(0)
+      fetchData(newDate)
     }
   };
 
@@ -93,10 +130,11 @@ export default function Nutrition() {
     carouselRef.current?.scrollTo({ left: scrollPosition, behavior: "smooth" });
   };
 
+  // UPDATE THIS BASED ON BACKEND API
   const progress = Math.min(calories / goal, 1);
   const startColor = '#008080';
   const endColor = 'rgba(255, 165, 0, 0.5)';
-  const caloriesRemaining = goal - calories;
+  // const caloriesRemaining =  calories;
 
   return (
     <div className="flex flex-col min-h-screen items-center bg-gray-50 font-poppins">
@@ -110,7 +148,7 @@ export default function Nutrition() {
         </button>
         <div className="flex-grow flex items-center justify-center z-40">
           <DatePicker
-            selected={dateOfBirth}
+            selected={nutritionDate}
             onChange={handleDateChange}
             className="flex flex-col text-center text-base p-1 w-[158px] bg-transparent"
             dateFormat="dd MMMM yyyy"
@@ -162,7 +200,7 @@ export default function Nutrition() {
           <div className="relative flex items-center justify-center rounded-full bg-[rgba(255,165,0,0.1)] w-full h-full">
             <div className="relative text-center">
               <div className="text-2xl font-semibold" style={{ fontFamily: 'Epilogue', fontSize: '22px', fontWeight: 600, lineHeight: '21px' }}>
-                {caloriesRemaining}
+                {calories} 
               </div>
               <div className="text-sm font-semibold" style={{ fontFamily: 'Epilogue', fontSize: '12px', fontWeight: 600, lineHeight: '21px' }}>
                 Calories Remaining
@@ -178,31 +216,45 @@ export default function Nutrition() {
         </Link>
       </div>
 
-      {/* Nutrients Goal Section */}
-      <div className="flex flex-col py-2 w-full mt-4 bg-[#FFA5001A] md:h-[20vh] lg:h-[15vh] overflow-x-auto">
-        <div className="flex items-center">
-          <h2 className="text-lg font-semibold mb-2 px-2 mt-2">Nutrients Goal</h2>
-        </div>
-        <div className="flex space-x-2 px-2" ref={carouselRef}>
-          {nutrients.map((nutrient, index) => (
-            <div
-              key={index}
-              onClick={() => handleRectangleClick(index)}
-              className={`flex flex-col items-center justify-between bg-white shadow-md rounded-md p-2 cursor-pointer ${selectedIndex === index ? "border-2 border-[#4CAF50]" : ""}`}
-              style={{ width: '85px', height: '110px' }}
-            >
-              <div className="text-sm font-semibold mb-1">{nutrient.name}</div>
-              <div className="text-xs mb-1">{`${nutrient.current}/${nutrient.goal}g`}</div>
-              <div
-                className="w-full h-2 bg-[#4CAF504D] rounded-md"
-                style={{
-                  background: `linear-gradient(to right, #4CAF50 ${Math.min(nutrient.current / nutrient.goal, 1) * 100}%, #4CAF504D ${Math.min(nutrient.current / nutrient.goal, 1) * 100}%)`
-                }}
-              />
+       {/* Nutrients List */}
+       <div className="bg-semi-transparent-orange min-h-screen mt-6 w-full">
+        {noData ? (
+          <div className="flex justify-center items-center py-20 w-full h-full">
+            <div className="animate-pulse bg-teal-custom rounded-md p-4">
+              <p className="text-lg text-white">No Goal set on this date</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div  className="">
+             {/* Nutrients Goal Section */}
+      <div className="flex flex-col py-2 w-full mt-4 bg-[#FFA5001A] md:h-[20vh] lg:h-[15vh] overflow-x-auto">
+  <div className="flex items-center">
+    <h2 className="text-lg font-semibold mb-2 px-2 mt-2">Nutrients Goal</h2>
+  </div>
+  <div className="flex space-x-2 px-2" ref={carouselRef}>
+    {nutrients.map((nutrient, index) => (
+      <div
+      key={index}
+      onClick={() => handleRectangleClick(index)}
+      className={`flex flex-col items-center justify-between bg-white shadow-md rounded-md p-2 cursor-pointer ${selectedIndex === index ? "border-2 border-[#4CAF50]" : ""}`}
+      style={{ width: '100px', height: '110px', overflow: 'hidden' }}
+    >
+      <div className="text-sm font-semibold mb-1 overflow-hidden text-ellipsis whitespace-nowrap" style={{ width: '100%' }}>
+        {nutrient.name}
       </div>
+      <div className="text-xs mb-1 overflow-hidden">{`${nutrient.current}/${nutrient.goal}g`}</div>
+      <div
+        className="w-full h-2 bg-[#4CAF504D] rounded-md"
+        style={{
+          background: `linear-gradient(to right, #4CAF50 ${Math.min(nutrient.current / nutrient.goal, 1) * 100}%, #4CAF504D ${Math.min(nutrient.current / nutrient.goal, 1) * 100}%)`
+        }}
+      />
+    </div>
+    
+    ))}
+  </div>
+</div>
+
 
            {/* Carousel Indicator */}
            <div className="flex items-center justify-center w-full py-2 bg-[#FFA5001A]">
@@ -272,6 +324,12 @@ export default function Nutrition() {
     <div className="text-center text-gray-500">No food data available</div>
   )}
 </div>
+          </div>
+        )}
+      </div>
+    
+
+    
 
     </div>
   );

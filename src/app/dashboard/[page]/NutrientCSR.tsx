@@ -407,7 +407,7 @@ const handleSliderChange = (index: number, value: number) => {
   
       // Handle successful response
       console.log('Goal Saved:', response.data);
-      router.push('/dashboard/nutrient-goal'); // Redirect after saving goal
+      router.push('/dashboard/nutrition'); // Redirect after saving goal
     } catch (error: any) {
       console.error('Error updating goal:', error.response?.data?.message || error.message);
     }
@@ -486,7 +486,7 @@ value={description}
 
 
 <div
-  className="relative"
+  className=" relative"
   style={{
     width: "266.34px",
     height: "174.62px",
@@ -656,7 +656,7 @@ value={description}
 
 <button
     onClick={handleSetGoal}
-    className="w-[380px] h-[41px] mt-2 ml-5 bg-teal-custom text-white border border-[#E8DECF] rounded-[24px] opacity-100 px-3"
+    className=" w-[380px] h-[41px] mt-2 ml-5 bg-teal-custom text-white border border-[#E8DECF] rounded-[24px] opacity-100 px-3"
   >
     SET GOAL
   </button>
