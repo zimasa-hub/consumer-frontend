@@ -407,7 +407,7 @@ const handleSliderChange = (index: number, value: number) => {
   
       // Handle successful response
       console.log('Goal Saved:', response.data);
-      router.push('/dashboard/nutrition'); // Redirect after saving goal
+      // router.push('/dashboard/nutrition'); // Redirect after saving goal
     } catch (error: any) {
       console.error('Error updating goal:', error.response?.data?.message || error.message);
     }
@@ -653,6 +653,14 @@ value={description}
   addedNutrients={microNutrients} // Add this line
 />
 
+{/* <Link 
+    onClick={handleSetGoal}
+    className=" w-[full] h-[auto] mt-2 ml-5 bg-teal-custom text-white border border-[#E8DECF] rounded-[24px] opacity-100 px-3"
+    href="/dashboard/nutrition"
+        >
+
+            SET GOAL
+        </Link> */}
 
 <button
     onClick={handleSetGoal}
@@ -660,6 +668,9 @@ value={description}
   >
     SET GOAL
   </button>
+
+
+ 
     </div>
   );
 }
